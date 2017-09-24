@@ -1,8 +1,22 @@
+#------------------------------------------------------------------------------
+# Dataset Summariser
+# @purpose R Shiny app to quickly view all the default datasets available in 
+#          an R installation. This helps me to learn RShiny and provides a 
+#          useful tool at the same time.
+# @author  Jesse M. Blum (jmb)(pszjmb1)
+# @date    2017-09
+#------------------------------------------------------------------------------
+
+#--SETUP ----------------------------------------------------------------------
 library(shiny)
 myDatasets <- as.data.frame(data()["results"])
 
-# Define UI for dataset viewer app ----
+#-- UI ------------------------------------------------------------------------
 ui <- fluidPage(
+  # Defines the UI for dataset viewer app
+  #
+  # Returns:
+  #   A UI defintion that can be passed to the shinyUI function.
   
   # App title ----
   titlePanel("Dataset Summariser"),
@@ -72,10 +86,18 @@ ui <- fluidPage(
   )
 )
 
-# Define server logic to summarize and view selected dataset ----
+#--SERVER LOGIC ---------------------------------------------------------------
+## Summarise and view selected default datasets
 server <- function(input, output, session) {
-  # Return the requested dataset ----
+  # Server-side logic of your application.
+  # Args:
+  #   input: Reactive input variables
+  #   output: Reactive output variables
+  #   session: An environment that can be used to access information and 
+  #            functionality relating to the session.
+  
   datasetInput <- reactive({
+    # Primary reactive object which determines the current dataset of interest
     x <- as.character(myDatasets[myDatasets$results.Title==input$dataset,]$results.Item[1])
     x <- strsplit(x, split="[\\(|\\)]")[[1]]
     x <- gsub(" ", "", x[1])
@@ -86,14 +108,17 @@ server <- function(input, output, session) {
       get(data(list=x))
     }
   })
-  # Set the label and select items
+  
   observe({
-    updateSelectInput(session, "variable1Sel",choices = colnames(as.data.frame(datasetInput())))
-    updateSelectInput(session, "variable2Sel",choices = colnames(as.data.frame(datasetInput())))
+    # Set the label and select items
+    updateSelectInput(session, "variable1Sel",
+                      choices = colnames(as.data.frame(datasetInput())))
+    updateSelectInput(session, "variable2Sel",
+                      choices = colnames(as.data.frame(datasetInput())))
   })
   
-  # Generate a summary of the dataset ----
   output$summary <- renderPrint({
+    # Generate a summary of the dataset ----
     dataset <- datasetInput()
     tempdataset <- dataset
     myClass <- class(tempdataset)
@@ -103,14 +128,14 @@ server <- function(input, output, session) {
     summary(tempdataset)
   })
   
-  # Get the dataset class----
   output$class <- renderPrint({
+    # Set the dataset class ----
     dataset <- datasetInput()
     class(dataset)
   })
   
-  # Get the dataset str----
-  output$str <- renderPrint({
+  output$str <- renderPrint({  
+    # Set the dataset str ----
     dataset <- datasetInput()
     tempdataset <- dataset
     myClass <- class(tempdataset)
@@ -120,8 +145,8 @@ server <- function(input, output, session) {
     str(tempdataset)
   })
   
-  # Show the first "n" observations ----
   output$sample <- renderTable({
+    # Show the first "n" observations in a table----
     set.seed(42)
     
     dataset <- datasetInput()
@@ -139,20 +164,20 @@ server <- function(input, output, session) {
     }
   },striped=TRUE, bordered = TRUE)
   
-  # Compute the formula text ----
-  # This is in a reactive expression since it is shared by the
-  # output$caption and output$mpgPlot functions
   formulaText <- reactive({
+    # Compute the formula text ----
+    ## This is in a reactive expression since it is shared by the
+    ##   output$caption and output$mpgPlot functions
     paste(input$variable1Sel,"~", input$variable2Sel)
   })
   
-  # Return the formula text for printing as a caption ----
   output$caption <- renderText({
+    # Return the formula text for printing as a caption ----
     formulaText()
   })
   
-  # Generate a plot of the requested variables
   output$bivariate <- renderPlot({
+    # Generate a plot of the requested variables
     dataset <- datasetInput()
     tempdataset <- dataset
     myClass <- class(tempdataset)
@@ -169,15 +194,9 @@ server <- function(input, output, session) {
     }
   })
   
-  # Histogram of the discoveries Data ----
-  # with requested number of bins
-  # This expression that generates a histogram is wrapped in a call
-  # to renderPlot to indicate that:
-  #
-  # 1. It is "reactive" and therefore should be automatically
-  #    re-executed when inputs (input$bins) change
-  # 2. Its output type is a plot
   output$univariate <- renderPlot({
+    # Histogram of the given dataset ----
+    ## with requested number of bins
     dataset <- datasetInput()
     x <- dataset
     myClass <- class(x)
