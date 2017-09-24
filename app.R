@@ -64,7 +64,8 @@ ui <- fluidPage(
     
     # Main panel for displaying outputs ----
     mainPanel(
-      h1("Output Summary"),
+      h1("Summary"),
+      verbatimTextOutput("dsTitle"),
       
       # Output: HTML table with requested number of observations ----
       h2("Class"),
@@ -98,7 +99,8 @@ server <- function(input, output, session) {
   
   datasetInput <- reactive({
     # Primary reactive object which determines the current dataset of interest
-    x <- as.character(myDatasets[myDatasets$results.Title==input$dataset,]$results.Item[1])
+    x <- as.character(
+      myDatasets[myDatasets$results.Title==input$dataset,]$results.Item[1])
     x <- strsplit(x, split="[\\(|\\)]")[[1]]
     x <- gsub(" ", "", x[1])
     if(exists(data(list=x))){
@@ -126,6 +128,11 @@ server <- function(input, output, session) {
       tempdataset <- as.data.frame(datasetInput())
     }
     summary(tempdataset)
+  })
+  
+  output$dsTitle <- renderText({
+    # Set the title ----
+    input$dataset
   })
   
   output$class <- renderPrint({
@@ -200,7 +207,7 @@ server <- function(input, output, session) {
     dataset <- datasetInput()
     x <- dataset
     myClass <- class(x)
-    if(myClass == "list") {
+    if(myClass %in% c("list","data.frame")) {
       x <- as.data.frame(datasetInput())
       tempVar <- input$variable1Sel
       if(!(input$variable1Sel %in% colnames(x))){
