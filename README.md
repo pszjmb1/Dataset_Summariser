@@ -5,9 +5,11 @@ This helps me to learn RShiny and provides a useful tool at the same time.
 
 Project Organization
 --------------------
-.
-├── app.R
-└── README.md
+A very straightforward program, indeed.
+
+    ├── app.R              <- All the code for this simple program
+    ├── LICENSE            <- License file
+    ├── README.md          <- The top-level README for developers using this project.
 
 Installation and running locally
 ------------
