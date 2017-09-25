@@ -20,74 +20,67 @@ ui <- fluidPage(
   
   # App title ----
   titlePanel("Dataset Summariser"),
-  
-  # Sidebar layout with a input and output definitions ----
-  sidebarLayout(
-    # Sidebar panel for inputs ----
-    sidebarPanel(
-      verbatimTextOutput("currentTime"),
-      h2("Controller"),
-      
-      # Input: Selector for choosing dataset ----
-      selectInput(inputId = "dataset",
-                  label = "Choose a dataset:",
-                  choices = sort(myDatasets$results.Title)),
-      
-      # Input: Numeric entry for number of obs to view ----
-      numericInput(inputId = "obs",
-                   label = "Number of observations to view:",
-                   value = 5),
-      # Include clarifying text ----
-      helpText("Note: the entry will be throttled at the max number of rows 
+  fluidRow(
+    column(3,
+           verbatimTextOutput("currentTime"),
+           h2("Controller"),
+           
+           # Input: Selector for choosing dataset ----
+           selectInput(inputId = "dataset",
+                       label = "Choose a dataset:",
+                       choices = sort(myDatasets$results.Title)),
+           
+           # Input: Numeric entry for number of obs to view ----
+           numericInput(inputId = "obs",
+                        label = "Number of observations to view:",
+                        value = 5),
+           # Include clarifying text ----
+           helpText("Note: the entry will be throttled at the max number of rows 
                for the given dataset."),
-      
-      # Input: Selector for variable to plot ----
-      selectInput(inputId = "variable1Sel", label = "Variable 1:",
-                  choices = c()),
-        
-      # Input: Slider for the number of bins ----
-      sliderInput(inputId = "bins",
-                  label = "Number of bins:",
-                  min = 2,
-                  max = 25,
-                  value = 6),
-      
-      h2("Output Plots"),
-      # Output: Tabset w/ plot, summary, and table ----
-      tabsetPanel(type = "tabs",
-        tabPanel("Hist", h2("Univariate Plots"), plotOutput("univariate")),
-        tabPanel("Bivariate", 
-                 # Input: Selector for 2nd variable to plot----
-                 selectInput(inputId = "variable2Sel", label = "Variable 2:",
-                             choices = c()),
-                 
-                 h2("Bivariate Plot"),
-                 plotOutput("bivariate"))
-      )
+           
+           # Input: Selector for variable to plot ----
+           selectInput(inputId = "variable1Sel", label = "Variable 1:",
+                       choices = c())
     ),
-    
-    # Main panel for displaying outputs ----
-    mainPanel(
-      h1("Summary"),
-      verbatimTextOutput("dsTitle"),
-      
-      # Output: HTML table with requested number of observations ----
-      h2("Class"),
-      verbatimTextOutput("class"),
-      
-      # Output: Verbatim text for data summary ----
-      h2("Summary"),
-      verbatimTextOutput("summary"),
-      
-      # Output: HTML table with requested number of observations ----
-      h2("Str"),
-      verbatimTextOutput("str"),
-      
-      # Output: HTML table with requested number of observations ----
-      h2("Data Sample"),
-      tableOutput("sample")
-      
-    )
+    column(9,
+           verbatimTextOutput("dsTitle"),
+           # Output: Tabset w/ tqble and plot ----
+           tabsetPanel(type = "tabs",
+               tabPanel("Summary",
+                 # Output: HTML table with requested number of observations ----
+                 h2("Class"),
+                 verbatimTextOutput("class"),
+                 
+                 # Output: Verbatim text for data summary ----
+                 h2("Summary"),
+                 verbatimTextOutput("summary"),
+                 
+                 # Output: HTML table with requested number of observations ----
+                 h2("Str"),
+                 verbatimTextOutput("str")
+               ),
+               tabPanel("Data",
+                tabsetPanel(type = "tabs",
+                            tabPanel("Table", tableOutput("sample")),
+                            tabPanel("Hist", 
+                                     # Input: Slider for the number of bins ----
+                                     sliderInput(inputId = "bins",
+                                                 label = "Number of bins:",
+                                                 min = 2,
+                                                 max = 25,
+                                                 value = 6),
+                                     h2("Univariate Plots"), plotOutput("univariate")),
+                            tabPanel("Bivariate", 
+                                     h2("Bivariate Plot"), 
+                                     # Input: Selector for 2nd variable to plot----
+                                     selectInput(inputId = "variable2Sel", 
+                                                 label = "Variable 2:",
+                                                 choices = c()), 
+                                     plotOutput("bivariate"))
+                 )
+               )
+         )
+      )
   )
 )
 
