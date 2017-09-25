@@ -172,7 +172,8 @@ server <- function(input, output, session) {
       tempObs <- ifelse(nrow(tempdataset) >= input$obs, input$obs, nrow(tempdataset))
       tempdataset[sample(nrow(tempdataset), tempObs), c(length(tempcolnames),(1:length(tempcolnames)-1))]
     } else {
-      sample(tempdataset,input$obs)
+      tempObs <- ifelse(length(tempdataset) >= input$obs, input$obs, length(tempdataset))
+      sample(tempdataset,tempObs)
     }
   },striped=TRUE, bordered = TRUE)
   
