@@ -23,9 +23,9 @@ ui <- fluidPage(
   
   # Sidebar layout with a input and output definitions ----
   sidebarLayout(
-    
     # Sidebar panel for inputs ----
     sidebarPanel(
+      verbatimTextOutput("currentTime"),
       h2("Controller"),
       
       # Input: Selector for choosing dataset ----
@@ -37,6 +37,9 @@ ui <- fluidPage(
       numericInput(inputId = "obs",
                    label = "Number of observations to view:",
                    value = 5),
+      # Include clarifying text ----
+      helpText("Note: the entry will be throttled at the max number of rows 
+               for the given dataset."),
       
       # Input: Selector for variable to plot ----
       selectInput(inputId = "variable1Sel", label = "Variable 1:",
@@ -50,16 +53,17 @@ ui <- fluidPage(
                   value = 6),
       
       h2("Output Plots"),
-      
-      h2("Univariate Plots"),
-      plotOutput("univariate"),
-      
-      # Input: Selector for 2nd variable to plot----
-      selectInput(inputId = "variable2Sel", label = "Variable 2:",
-                  choices = c()),
-      
-      h2("Bivariate Plot"),
-      plotOutput("bivariate")
+      # Output: Tabset w/ plot, summary, and table ----
+      tabsetPanel(type = "tabs",
+        tabPanel("Hist", h2("Univariate Plots"), plotOutput("univariate")),
+        tabPanel("Bivariate", 
+                 # Input: Selector for 2nd variable to plot----
+                 selectInput(inputId = "variable2Sel", label = "Variable 2:",
+                             choices = c()),
+                 
+                 h2("Bivariate Plot"),
+                 plotOutput("bivariate"))
+      )
     ),
     
     # Main panel for displaying outputs ----
@@ -165,7 +169,8 @@ server <- function(input, output, session) {
     if("data.frame" %in% class(tempdataset)){
       tempdataset$row <- rownames(tempdataset)
       tempcolnames <-  colnames(tempdataset)
-      tempdataset[sample(nrow(tempdataset), input$obs), c(length(tempcolnames),(1:length(tempcolnames)-1))]
+      tempObs <- ifelse(nrow(tempdataset) >= input$obs, input$obs, nrow(tempdataset))
+      tempdataset[sample(nrow(tempdataset), tempObs), c(length(tempcolnames),(1:length(tempcolnames)-1))]
     } else {
       sample(tempdataset,input$obs)
     }
@@ -199,6 +204,12 @@ server <- function(input, output, session) {
               data = tempdataset,
               col = "#75AADB", pch = 19)
     }
+  })
+  
+  output$currentTime <- renderText({
+    # Timer example
+    invalidateLater(5000, session)
+    paste("", Sys.time())
   })
   
   output$univariate <- renderPlot({
