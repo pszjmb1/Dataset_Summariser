@@ -23,24 +23,10 @@ ui <- fluidPage(
   fluidRow(
     column(3,
            verbatimTextOutput("currentTime"),
-           h2("Controller"),
-           
            # Input: Selector for choosing dataset ----
            selectInput(inputId = "dataset",
                        label = "Choose a dataset:",
-                       choices = sort(myDatasets$results.Title)),
-           
-           # Input: Numeric entry for number of obs to view ----
-           numericInput(inputId = "obs",
-                        label = "Number of observations to view:",
-                        value = 5),
-           # Include clarifying text ----
-           helpText("Note: the entry will be throttled at the max number of rows 
-               for the given dataset."),
-           
-           # Input: Selector for variable to plot ----
-           selectInput(inputId = "variable1Sel", label = "Variable 1:",
-                       choices = c())
+                       choices = sort(myDatasets$results.Title))
     ),
     column(9,
            verbatimTextOutput("dsTitle"),
@@ -61,8 +47,20 @@ ui <- fluidPage(
                ),
                tabPanel("Data",
                 tabsetPanel(type = "tabs",
-                            tabPanel("Table", tableOutput("sample")),
+                            tabPanel("Table", 
+                                     # Input: Numeric entry for number of obs to view ----
+                                     numericInput(inputId = "obs",
+                                                  label = "Number of observations to view:",
+                                                  value = 5),
+                                     # Include clarifying text ----
+                                     helpText("Note: the entry will be throttled at 
+                                              the max number of rows 
+                                              for the given dataset."),
+                                     tableOutput("sample")),
                             tabPanel("Hist", 
+                                     # Input: Selector for variable to plot ----
+                                     selectInput(inputId = "variable1Sel", label = "Variable",
+                                                 choices = c()),
                                      # Input: Slider for the number of bins ----
                                      sliderInput(inputId = "bins",
                                                  label = "Number of bins:",
@@ -72,6 +70,11 @@ ui <- fluidPage(
                                      h2("Univariate Plots"), plotOutput("univariate")),
                             tabPanel("Bivariate", 
                                      h2("Bivariate Plot"), 
+                                     verbatimTextOutput("caption"),
+                                     helpText("Note: make sure that different variables are selected."),
+                                     # Input: Selector for variable1b to plot ----
+                                     selectInput(inputId = "variable1bSel", label = "Variable 1:",
+                                                 choices = c()),
                                      # Input: Selector for 2nd variable to plot----
                                      selectInput(inputId = "variable2Sel", 
                                                  label = "Variable 2:",
@@ -111,6 +114,8 @@ server <- function(input, output, session) {
   observe({
     # Set the label and select items
     updateSelectInput(session, "variable1Sel",
+                      choices = colnames(as.data.frame(datasetInput())))
+    updateSelectInput(session, "variable1bSel",
                       choices = colnames(as.data.frame(datasetInput())))
     updateSelectInput(session, "variable2Sel",
                       choices = colnames(as.data.frame(datasetInput())))
@@ -174,7 +179,7 @@ server <- function(input, output, session) {
     # Compute the formula text ----
     ## This is in a reactive expression since it is shared by the
     ##   output$caption and output$mpgPlot functions
-    paste(input$variable1Sel,"~", input$variable2Sel)
+    paste(input$variable1bSel,"~", input$variable2Sel)
   })
   
   output$caption <- renderText({
@@ -187,7 +192,7 @@ server <- function(input, output, session) {
     dataset <- datasetInput()
     tempdataset <- dataset
     myClass <- class(tempdataset)
-    if(input$variable1Sel == input$variable2Sel){
+    if(input$variable1bSel == input$variable2Sel){
       return()
     }
     if(myClass == "list") {
